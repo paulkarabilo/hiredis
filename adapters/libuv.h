@@ -32,6 +32,8 @@ static void redisLibuvPoll(uv_poll_t* handle, int status, int events) {
 static void redisLibuvAddRead(void *privdata) {
   redisLibuvEvents* p = (redisLibuvEvents*)privdata;
 
+  if (p->context == NULL) return;
+
   p->events |= UV_READABLE;
 
   uv_poll_start(&p->handle, p->events, redisLibuvPoll);
@@ -40,6 +42,8 @@ static void redisLibuvAddRead(void *privdata) {
 
 static void redisLibuvDelRead(void *privdata) {
   redisLibuvEvents* p = (redisLibuvEvents*)privdata;
+
+  if (p->context == NULL) return;
 
   p->events &= ~UV_READABLE;
 
@@ -54,6 +58,8 @@ static void redisLibuvDelRead(void *privdata) {
 static void redisLibuvAddWrite(void *privdata) {
   redisLibuvEvents* p = (redisLibuvEvents*)privdata;
 
+  if (p->context == NULL) return;
+
   p->events |= UV_WRITABLE;
 
   uv_poll_start(&p->handle, p->events, redisLibuvPoll);
@@ -62,6 +68,8 @@ static void redisLibuvAddWrite(void *privdata) {
 
 static void redisLibuvDelWrite(void *privdata) {
   redisLibuvEvents* p = (redisLibuvEvents*)privdata;
+
+  if (p->context == NULL) return;
 
   p->events &= ~UV_WRITABLE;
 
@@ -84,7 +92,10 @@ static void redisLibuvCleanup(void *privdata) {
   redisLibuvEvents* p = (redisLibuvEvents*)privdata;
 
   p->context = NULL; // indicate that context might no longer exist
-  uv_close((uv_handle_t*)&p->handle, on_close);
+
+  if (uv_is_active((uv_handle_t*)&p->handle)) {
+    uv_close((uv_handle_t*)&p->handle, on_close);
+  }
 }
 
 

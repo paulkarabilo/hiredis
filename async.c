@@ -549,7 +549,7 @@ void redisAsyncHandleWrite(redisAsyncContext *ac) {
     }
 
     if (redisBufferWrite(c,&done) == REDIS_ERR) {
-        __redisAsyncDisconnect(ac);
+        if (!(c->flags & (REDIS_DISCONNECTING | REDIS_FREEING))) __redisAsyncDisconnect(ac);
     } else {
         /* Continue writing when not done, stop writing otherwise */
         if (!done)
